@@ -1,0 +1,17 @@
+services:
+  mongo:
+    image: mongo:8.0
+    container_name: cubank-mongo
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - cubank-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  cubank-mongo-data:
