@@ -1,0 +1,25 @@
+{
+  "name": "cu-bank-e2e",
+  "private": true,
+  "description": "Playwright UI tests for the 8 CU Bank test scenarios",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "test": "playwright test",
+    "test:fast": "HEADLESS=1 playwright test",
+    "test:ui": "playwright test --ui",
+    "scenario": "node scripts/scenario.mjs",
+    "s1": "playwright test scenario-1-",
+    "s2": "playwright test scenario-2-",
+    "s3": "playwright test scenario-3-",
+    "s4": "playwright test scenario-4-",
+    "s5": "playwright test scenario-5-",
+    "s6": "playwright test scenario-6-",
+    "s7": "playwright test scenario-7-",
+    "s8": "playwright test scenario-8-",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6"
+  }
+}

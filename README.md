@@ -59,6 +59,42 @@ Run it once after cloning. It's safe to run again, for example after pulling new
 | API | <http://localhost:4000/api/v1> |
 | MongoDB | `mongodb://127.0.0.1:27017/cubank` |
 
+## Automated UI tests (Playwright)
+
+The 8 test scenarios from the project brief live in [`tests/`](tests/), one file per scenario. Install the test tools once, from the repo root. This also downloads Playwright's Chromium:
+
+```bash
+npm install
+```
+
+By default a browser window opens and each step is slowed down, so you can watch the scenario run. If the app isn't running yet, the tests start it with `./start.sh` and stop it afterwards.
+
+| Command | What it runs |
+| --- | --- |
+| `npm test` | All 8 scenarios, one browser window at a time |
+| `npm run s1` … `npm run s8` | One scenario |
+| `npm run scenario -- 1 3 5` | The scenarios you pick |
+| `npm run test:fast` | All 8 scenarios, no browser window, in parallel |
+| `npm run test:ui` | Playwright's UI mode: tick the scenarios to run and replay each step |
+| `npm run report` | Open the HTML report of the last run (screenshot of every test, "Actual output" for rejected inputs) |
+
+- **One test case:** `npm run s5 -- -g TC05_009`
+- **Slower or faster:** `SLOWMO=1000 npm run s5` (milliseconds per step; the default is 400)
+- **Another browser:** `TEST_BROWSER=dia npm test`. To keep your choice, copy [`.env.example`](.env.example) to `.env` and set it there; `.env` isn't committed, so each teammate can pick their own.
+
+| `TEST_BROWSER` | Browser |
+| --- | --- |
+| `chromium` (default) | Playwright's Chromium, downloaded by `npm install` |
+| `chrome`, `edge` | Google Chrome or Microsoft Edge installed on your computer |
+| `dia` | Dia in `/Applications` (macOS). Always runs without a window, because Dia doesn't show pages opened by test tools; use `chromium` or `chrome` to watch |
+| `brave` | Brave in `/Applications` (macOS) |
+| `firefox`, `webkit` | Playwright's Firefox, or WebKit (Safari's engine). Download it first with `npx playwright install firefox` (or `webkit`) |
+| a full path | Any other Chromium-based browser, e.g. `TEST_BROWSER="/Applications/Arc.app/Contents/MacOS/Arc"` |
+
+The tests always run in a fresh, empty profile, so your own tabs, logins and extensions aren't touched.
+
+Expected messages come from the requirements in the project brief, so a failing test means the app doesn't match them. Each failure shows what the user expected and what they saw. Every test registers fresh random account numbers, so you can rerun the tests without resetting the database.
+
 ## Configuration
 
 The backend reads its settings from [`backend/config/config.env`](backend/config/config.env):
@@ -97,8 +133,16 @@ cu-bank-testing/
 ├── setup.sh                      # one-time setup: Node, config, MongoDB, npm install
 ├── start.sh                      # starts or restarts MongoDB, backend and frontend
 ├── docker-compose.yml            # MongoDB 8.0 container (cubank-mongo)
+├── package.json                  # Playwright test commands (npm test, npm run s1 …)
+├── playwright.config.ts          # browser choice, slow motion, screenshots, auto-start
+├── .env.example                  # copy to .env to set TEST_BROWSER / SLOWMO for yourself
+├── tsconfig.json                 # editor type checking for the tests
+├── tests/
+│   ├── scenario-1-register-fail.spec.ts … scenario-8-full-journey.spec.ts
+│   └── support/cubank.ts         # page helpers, API set-up, expected messages
 ├── scripts/
-│   └── common.sh                 # helpers shared by setup.sh and start.sh
+│   ├── common.sh                 # helpers shared by setup.sh and start.sh
+│   └── scenario.mjs              # npm run scenario -- 1 3 5
 ├── backend/                      # Express API (:4000)
 │   ├── server.js                 # app entry: middleware, routes, CORS
 │   ├── config/
