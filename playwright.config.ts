@@ -88,7 +88,9 @@ export default defineConfig({
   // One browser window at a time while watching; several in parallel when headless.
   workers: headless ? undefined : 1,
   timeout: 90_000,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // The failure summary prints at the end of every run: failed tests grouped by
+  // cause (message typo, browser blocked the form, transaction went through, other).
+  reporter: [['list'], ['html', { open: 'never' }], ['./tests/support/failure-summary-reporter.ts']],
 
   use: {
     ...browser.use,

@@ -8,6 +8,7 @@
     "test:fast": "HEADLESS=1 playwright test",
     "test:ui": "playwright test --ui",
     "scenario": "node scripts/scenario.mjs",
+    "scenario:all": "node scripts/scenario.mjs all",
     "s1": "playwright test scenario-1-",
     "s2": "playwright test scenario-2-",
     "s3": "playwright test scenario-3-",

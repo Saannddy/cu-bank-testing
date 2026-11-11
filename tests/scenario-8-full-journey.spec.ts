@@ -1,35 +1,27 @@
-import { expect, test } from '@playwright/test';
-import { CUBank, PASSWORD, createAccount, newAccountId } from './support/cubank';
+import { test } from '@playwright/test';
+import { CUBank, createAccount } from './support/cubank';
 
-// Scenario 8 (our own): register, log in, deposit, withdraw and transfer, all
-// passing. Then log in as the recipient and check the money arrived.
-// Covers RA1, RP1, RF1, LA1, LP1, DA1, WA1, TA1, TT1.
+const PASSWORD = '0427';
 
-test.describe('Scenario 8: Register, log in, deposit, withdraw and transfer all pass', () => {
-  test('TC08_001 Transfer between two accounts succeeds', async ({ page, request }) => {
+test.describe('Scenario 8: Login, deposit, withdrawal and transfer all pass', () => {
+  test('TC08_001 Transfer between two accounts succeeds (Transfer01: TA1, TT1)', async ({ page, request }) => {
     const bank = new CUBank(page);
-    const recipient = await test.step('Pre-condition: a recipient account with balance 0', () =>
-      createAccount(request),
+    const sender = await test.step('Pre-condition: a registered sender with balance 0', () =>
+      createAccount(request, { password: PASSWORD }),
     );
-    const sender = { accountId: newAccountId(), password: PASSWORD, name: 'Sam Son' };
+    const recipient = await test.step('Pre-condition: a registered recipient with balance 0', () =>
+      createAccount(request, { password: PASSWORD }),
+    );
 
-    await test.step(`Register ${sender.accountId}`, async () => {
-      await bank.openRegister();
-      await bank.fillRegister({ accountId: sender.accountId, password: sender.password, firstName: 'Sam', lastName: 'Son' });
-      const popup = await bank.submitRegistration();
-      expect(popup.toLowerCase()).toContain('success');
-      await expect(page).toHaveURL(/localhost:3000\/$/);
-    });
+    await test.step(`Log in as ${sender.accountId} (LA1, LP1)`, () => bank.loginAs(sender));
 
-    await test.step(`Log in as ${sender.accountId}`, () => bank.loginAs(sender));
-
-    await test.step('Deposit 100: balance 100', async () => {
+    await test.step('Deposit 100: balance 100 (DA1)', async () => {
       await bank.fillDeposit('100');
       await bank.submitAndExpectBalance('deposit', 100);
       await bank.expectLastTransaction({ title: 'deposit', amount: 100, balance: 100 });
     });
 
-    await test.step('Withdraw 20: balance 80', async () => {
+    await test.step('Withdraw 20: balance 80 (WA1)', async () => {
       await bank.fillWithdraw('20');
       await bank.submitAndExpectBalance('withdraw', 80);
       await bank.expectLastTransaction({ title: 'withdraw', amount: 20, balance: 80 });
@@ -38,13 +30,16 @@ test.describe('Scenario 8: Register, log in, deposit, withdraw and transfer all 
     await test.step(`Transfer 20 to ${recipient.accountId}: balance 60`, async () => {
       await bank.fillTransfer(recipient.accountId, '20');
       await bank.submitAndExpectBalance('transfer', 60);
+    });
+
+    await test.step('Post-condition: sender history has 3 entries, the last is "transfer to"', async () => {
       await bank.expectHistoryCount(3);
       await bank.expectLastTransaction({ title: 'transfer to', target: recipient.accountId, amount: 20, balance: 60 });
     });
 
     await test.step('Log out', () => bank.logout());
 
-    await test.step(`Log in as the recipient ${recipient.accountId}: balance 20, history shows the transfer`, async () => {
+    await test.step(`Post-condition: recipient ${recipient.accountId} has 20 and a "transfer from" entry`, async () => {
       await bank.loginAs(recipient);
       await bank.expectBalance(20);
       await bank.expectHistoryCount(1);

@@ -73,6 +73,7 @@ By default a browser window opens and each step is slowed down, so you can watch
 | --- | --- |
 | `npm test` | All 8 scenarios, one browser window at a time |
 | `npm run s1` … `npm run s8` | One scenario |
+| `npm run scenario:all` | All 8 scenarios, then the failure summary (same as `npm test`) |
 | `npm run scenario -- 1 3 5` | The scenarios you pick |
 | `npm run test:fast` | All 8 scenarios, no browser window, in parallel |
 | `npm run test:ui` | Playwright's UI mode: tick the scenarios to run and replay each step |
@@ -93,7 +94,7 @@ By default a browser window opens and each step is slowed down, so you can watch
 
 The tests always run in a fresh, empty profile, so your own tabs, logins and extensions aren't touched.
 
-Expected messages come from the requirements in the project brief, so a failing test means the app doesn't match them. Each failure shows what the user expected and what they saw. Every test registers fresh random account numbers, so you can rerun the tests without resetting the database.
+Expected messages come from the requirements in the project brief, so a failing test means the app doesn't match them. Each failure shows what the user expected and what they saw. Every run ends with a **failure summary** that groups the failed tests by cause: message typos (only the final "." differs, or different wording), the browser blocking the form before the app could check it, a transaction that went through when it should have been refused, and anything else. Every test registers fresh random account numbers, so you can rerun the tests without resetting the database.
 
 ## Configuration
 
@@ -139,10 +140,12 @@ cu-bank-testing/
 ├── tsconfig.json                 # editor type checking for the tests
 ├── tests/
 │   ├── scenario-1-register-fail.spec.ts … scenario-8-full-journey.spec.ts
-│   └── support/cubank.ts         # page helpers, API set-up, expected messages
+│   └── support/
+│       ├── cubank.ts             # page helpers, API set-up, expected messages
+│       └── failure-summary-reporter.ts  # groups failed tests by cause at the end of a run
 ├── scripts/
 │   ├── common.sh                 # helpers shared by setup.sh and start.sh
-│   └── scenario.mjs              # npm run scenario -- 1 3 5
+│   └── scenario.mjs              # npm run scenario -- 1 3 5 / npm run scenario:all
 ├── backend/                      # Express API (:4000)
 │   ├── server.js                 # app entry: middleware, routes, CORS
 │   ├── config/
